@@ -13,6 +13,10 @@ def create_app():
     CORS(app)
     db.init_app(app)
 
+    # Import models to ensure they're known to SQLAlchemy
+    from app.models.category import Category
+    from app.models.note import Note
+
     # Import routes to avoid circular imports 
     from app.routes import notes, categories
     app.register_blueprint(notes.bp)
