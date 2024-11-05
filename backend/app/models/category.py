@@ -10,7 +10,7 @@ class Category(db.Model):
     parent_id = db.Column(db.Integer, db.ForeignKey('category.id'))
     children = db.relationship('Category')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.Column, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationship with notes
     notes = db.relationship('Note', backref='category', lazy=True)
