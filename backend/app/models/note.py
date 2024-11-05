@@ -3,13 +3,12 @@ from app import db
 from datetime import datetime
 
 class Note(db.Model):
-    __tablename__ = 'note' # Explicitly set talbe name
+    __tablename__ = 'note'
     
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     content = db.Column(db.Text)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
-    tags = db.Column(db.String(200))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

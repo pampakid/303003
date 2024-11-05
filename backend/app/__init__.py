@@ -2,24 +2,24 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-from app.config import Config
 
+# Create the db instance before any models import it
 db = SQLAlchemy()
 
 def create_app():
     app = Flask(__name__)
-    app.config.from_object(Config)
-
+    
+    # Database configuration
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///notes.db'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    
+    # Initialize extensions
     CORS(app)
     db.init_app(app)
-
-    # Import models to ensure they're known to SQLAlchemy
-    from app.models.category import Category
-    from app.models.note import Note
-
-    # Import routes to avoid circular imports 
-    from app.routes import notes, categories
-    app.register_blueprint(notes.bp)
+    
+    # Register blueprints
+    from app.routes import categories, notes
     app.register_blueprint(categories.bp)
-
+    app.register_blueprint(notes.bp)
+    
     return app
