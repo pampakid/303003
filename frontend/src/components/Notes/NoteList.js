@@ -5,13 +5,20 @@ import NoteCard from './NoteCard';
 import NoteSearch from './NoteSearch';
 import NoteForm from './NoteForm';
 
-const NoteList = () => {
+const NoteList = ({ selectedNote, onNoteUpdate }) => {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
     loadNotes();
   }, []);
+
+  useEffect(() => {
+    if (selectedNote) {
+      setShowForm(true);
+    }
+  }, [selectedNote]);
 
   const loadNotes = async () => {
     try {
@@ -38,17 +45,47 @@ const NoteList = () => {
     }
   };
 
+  const handleNoteCreated = () => {
+    loadNotes();
+    setShowForm(false);
+    if (onNoteUpdate) onNoteUpdate();
+  };
+
   if (loading) {
     return <div className="flex justify-center p-4">Loading...</div>;
   }
 
   return (
     <div className="p-4">
-      <NoteForm onNoteCreated={loadNotes} />
+      <button
+        onClick={() => setShowForm(true)}
+        className="w-full p-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition mb-6"
+      >
+        Create New Note
+      </button>
+
+      {showForm && (
+        <div className="mb-6">
+          <NoteForm 
+            initialNote={selectedNote}
+            onNoteCreated={handleNoteCreated}
+            onCancel={() => {
+              setShowForm(false);
+              if (onNoteUpdate) onNoteUpdate();
+            }}
+          />
+        </div>
+      )}
+
       <NoteSearch onSearch={handleSearch} />
+      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
         {notes.map((note) => (
-          <NoteCard key={note.id} note={note} onUpdate={loadNotes} />
+          <NoteCard 
+            key={note.id} 
+            note={note} 
+            onUpdate={loadNotes}
+          />
         ))}
       </div>
     </div>
