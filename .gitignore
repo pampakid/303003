@@ -1,6 +1,41 @@
-/backend/venv/
-/backend/instance/
-/backend/app/__pycache__/
-/backend/models/__pycache__/
-/backend/routes/__pycache__/
-/backend/config/__pycache__/
+# Backend - Python/Flask
+backend/venv/
+backend/env/
+backend/ENV/
+backend/instance/
+backend/*.db
+backend/*.sqlite
+backend/**/__pycache__/
+backend/**/*.py[cod]
+backend/**/*$py.class
+backend/.Python
+
+# Frontend - React
+# dependencies
+frontend/node_modules
+frontend/.pnp
+frontend/.pnp.js
+
+# testing
+frontend/coverage
+
+# production
+frontend/build
+
+# misc
+frontend/.DS_Store
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
