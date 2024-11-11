@@ -39,3 +39,5 @@ const NoteCard = ({ note, onUpdate }) => {
     </div>
   );
 };
+
+export default NoteCard; // Add this export

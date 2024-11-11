@@ -52,3 +52,5 @@ const NoteList = () => {
     </div>
   );
 };
+
+export default NoteList; // Add this export
