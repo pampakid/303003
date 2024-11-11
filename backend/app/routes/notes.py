@@ -95,7 +95,7 @@ def update_note(id):
         note.tags = ','.join(data['tags'])
 
     db.session.commit()
-    return jsonify*(note.to_dict())
+    return jsonify(note.to_dict())
 
 @bp.route('/<int:id>', methods=['DELETE'])
 def delete_note(id):
