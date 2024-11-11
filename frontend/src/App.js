@@ -3,18 +3,26 @@ import React, { useState } from 'react';
 import NoteList from './components/Notes/NoteList';
 import CategoryTree from './components/Categories/CategoryTree';
 import CategoryForm from './components/Categories/CategoryForm';
-import { categoriesApi } from './services/api';
+import NoteForm from './components/Notes/NoteForm';
 
 function App() {
   const [selectedNote, setSelectedNote] = useState(null);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
+  const [showNoteForm, setShowNoteForm] = useState(false);
+  const [notes, setNotes] = useState([]);
 
   const handleNoteSelect = (note) => {
     setSelectedNote(note);
+    setShowNoteForm(true);
   };
 
-  const handleNoteUpdate = () => {
+  const handleFormClose = () => {
     setSelectedNote(null);
+    setShowNoteForm(false);
+  };
+
+  const updateNotesList = (updatedNotes) => {
+    setNotes(updatedNotes);
   };
 
   return (
@@ -28,26 +36,52 @@ function App() {
       </header>
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         <div className="flex gap-6">
+          {/* Left Sidebar */}
           <div className="w-1/4">
-            <div className="mb-4">
-              <button
-                onClick={() => setShowCategoryForm(!showCategoryForm)}
-                className="w-full p-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
-              >
-                Create New Category
-              </button>
-              {showCategoryForm && (
-                <CategoryForm 
-                  onClose={() => setShowCategoryForm(false)}
-                />
-              )}
+            <button
+              onClick={() => setShowCategoryForm(!showCategoryForm)}
+              className="w-full mb-4 p-3 bg-green-500 text-white rounded-lg hover:bg-green-600"
+            >
+              Create New Category
+            </button>
+            
+            {showCategoryForm && (
+              <CategoryForm onClose={() => setShowCategoryForm(false)} />
+            )}
+            
+            <div className="mt-4 bg-white rounded-lg shadow">
+              <CategoryTree 
+                notes={notes}
+                onSelectNote={handleNoteSelect}
+              />
             </div>
-            <CategoryTree onSelectNote={handleNoteSelect} />
           </div>
+
+          {/* Main Content */}
           <div className="w-3/4">
-            <NoteList 
-              selectedNote={selectedNote}
-              onNoteUpdate={handleNoteUpdate}
+            <button
+              onClick={() => setShowNoteForm(true)}
+              className="w-full mb-4 p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            >
+              Create New Note
+            </button>
+
+            {showNoteForm && (
+              <div className="mb-4">
+                <NoteForm
+                  initialNote={selectedNote}
+                  onClose={handleFormClose}
+                  onSuccess={() => {
+                    handleFormClose();
+                    // Refresh notes list
+                  }}
+                />
+              </div>
+            )}
+
+            <NoteList
+              onSelectNote={handleNoteSelect}
+              onNotesUpdate={updateNotesList}
             />
           </div>
         </div>
