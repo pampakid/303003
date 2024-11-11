@@ -7,6 +7,46 @@ from app import db
 # CS Concept: Modular Design Pattern
 bp = Blueprint('notes', __name__, url_prefix='/api/notes')
 
+@bp.route('/search', methods=['GET'])
+def search_notes():
+    """
+    Search notes by title, content, or tags
+
+    CS Concepts:
+    1. Query building - Dynamic SQL construction
+    2. Search Optimization - Using database indexes
+    3. Text Processing - Pattern matching with LIKE 
+    """
+    # Get search parameters
+    query = request.args.get('q', '')
+    category_id = request.args.get('category_id', type=int)
+
+    # Start building the base query
+    # CS Concept: Query Building
+    search = Note.query
+
+    if query:
+        # Convert search term to lowercase and add wildcards
+        search_term = f"%{query.lower()}%"
+
+        # Build OR conditions for searching multiple fields
+        # CS Concept: Boolean Logic in Search
+        search = search.filter(
+            or_(
+                Note.title.ilike(search_term),  # Case-insensitive search
+                Note.content.ilike(search_term),
+                Note.tags.ilike(search_term)
+            )
+        )
+    
+    # Add category filter if specified
+    if category_id:
+        search = search.filter(Note.category_id == category_id)
+
+    # Execute search and return results
+    notes = search.order_by(Note.updated_at.desc()).all()
+    return jsonify([note.to_dict() for note in notes])
+
 @bp.route('/', methods=['GET'])
 def get_notes():
     """

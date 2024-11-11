@@ -31,6 +31,13 @@ class Note(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    # Add indexes for search optimization
+    # CS Concept: Database indexing
+    __table_args__ = (
+        Index('idx_note_title', 'title'),   # Index for title searches
+        Index('idx_note_tags', 'tags'),     # Index for tag searches
+    )
+
     def to_dict(self):
         """
         Converts note object to dictionary format
