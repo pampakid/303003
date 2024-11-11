@@ -2,8 +2,9 @@
 import React from 'react';
 import { notesApi } from '../../services/api';
 
-const NoteCard = ({ note, onUpdate }) => {
-  const handleDelete = async () => {
+const NoteCard = ({ note, onUpdate, onClick }) => {
+  const handleDelete = async (e) => {
+    e.stopPropagation(); // Prevent triggering card click
     if (window.confirm('Are you sure you want to delete this note?')) {
       try {
         await notesApi.deleteNote(note.id);
@@ -15,9 +16,12 @@ const NoteCard = ({ note, onUpdate }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-4">
+    <div 
+      onClick={onClick}
+      className="bg-white rounded-lg shadow p-4 hover:shadow-md transition cursor-pointer"
+    >
       <h3 className="text-lg font-semibold">{note.title}</h3>
-      <p className="mt-2 text-gray-600">{note.content}</p>
+      <p className="mt-2 text-gray-600 line-clamp-3">{note.content}</p>
       <div className="mt-4 flex flex-wrap gap-2">
         {note.tags.map((tag, index) => (
           <span
@@ -40,4 +44,4 @@ const NoteCard = ({ note, onUpdate }) => {
   );
 };
 
-export default NoteCard; // Add this export
+export default NoteCard;
