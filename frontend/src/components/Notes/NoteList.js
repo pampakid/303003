@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { notesApi } from '../../services/api';
 import NoteCard from './NoteCard';
 import NoteSearch from './NoteSearch';
+import NoteForm from './NoteForm';
 
 const NoteList = () => {
   const [notes, setNotes] = useState([]);
@@ -43,6 +44,7 @@ const NoteList = () => {
 
   return (
     <div className="p-4">
+      <NoteForm onNoteCreated={loadNotes} />
       <NoteSearch onSearch={handleSearch} />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
         {notes.map((note) => (
@@ -53,4 +55,4 @@ const NoteList = () => {
   );
 };
 
-export default NoteList; // Add this export
+export default NoteList;
