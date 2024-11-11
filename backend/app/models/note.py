@@ -1,6 +1,7 @@
 # backend/app/models/note.py
 from app import db
 from datetime import datetime
+from sqlalchemy import Index
 
 class Note(db.Model):
     """
