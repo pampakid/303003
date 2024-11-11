@@ -1,34 +1,61 @@
 // src/components/Notes/NoteForm.js
-import React, { useState } from 'react';
-import { notesApi } from '../../services/api';
+import React, { useState, useEffect } from 'react';
+import { notesApi, categoriesApi } from '../../services/api';
 
-const NoteForm = ({ onNoteCreated }) => {
+const NoteForm = ({ onNoteCreated, initialNote = null }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [categories, setCategories] = useState([]);
   const [note, setNote] = useState({
     title: '',
     content: '',
-    tags: ''
+    tags: '',
+    category_id: ''
   });
+
+  useEffect(() => {
+    loadCategories();
+    if (initialNote) {
+      setIsOpen(true);
+      setNote({
+        ...initialNote,
+        tags: initialNote.tags.join(',')
+      });
+    }
+  }, [initialNote]);
+
+  const loadCategories = async () => {
+    try {
+      const data = await categoriesApi.getAllCategories();
+      setCategories(data);
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Convert comma-separated tags string to array
       const tagArray = note.tags
         ? note.tags.split(',').map(tag => tag.trim())
         : [];
       
-      await notesApi.createNote({
+      const noteData = {
         ...note,
-        tags: tagArray
-      });
+        tags: tagArray,
+        category_id: note.category_id || null
+      };
+
+      if (initialNote) {
+        await notesApi.updateNote(initialNote.id, noteData);
+      } else {
+        await notesApi.createNote(noteData);
+      }
       
-      // Reset form
-      setNote({ title: '', content: '', tags: '' });
+      setNote({ title: '', content: '', tags: '', category_id: '' });
       setIsOpen(false);
       if (onNoteCreated) onNoteCreated();
     } catch (error) {
-      console.error('Error creating note:', error);
+      console.error('Error saving note:', error);
     }
   };
 
@@ -47,7 +74,7 @@ const NoteForm = ({ onNoteCreated }) => {
           onClick={() => setIsOpen(true)}
           className="w-full p-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
         >
-          Create New Note
+          {initialNote ? 'Edit Note' : 'Create New Note'}
         </button>
       ) : (
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6">
@@ -62,6 +89,23 @@ const NoteForm = ({ onNoteCreated }) => {
                 className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
                 required
               />
+            </div>
+            
+            <div>
+              <label className="block text-gray-700 mb-2">Category</label>
+              <select
+                name="category_id"
+                value={note.category_id}
+                onChange={handleChange}
+                className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">No Category</option>
+                {categories.map(category => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
             </div>
             
             <div>
@@ -102,7 +146,7 @@ const NoteForm = ({ onNoteCreated }) => {
                 type="submit"
                 className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
               >
-                Save Note
+                {initialNote ? 'Update Note' : 'Save Note'}
               </button>
             </div>
           </div>
