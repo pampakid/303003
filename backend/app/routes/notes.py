@@ -2,6 +2,7 @@
 from flask import Blueprint, jsonify, request
 from app.models.note import Note
 from app import db
+from sqlalchemy import or_
 
 # Blueprint: Flask's way of modularizing routes
 # CS Concept: Modular Design Pattern
