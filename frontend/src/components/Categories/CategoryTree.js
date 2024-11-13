@@ -72,7 +72,7 @@ const CategoryTreeItem = ({
                 {isExpanded ? '▼' : '▶'}
               </span>
             ) : (
-              <span className="w-4" /> {/* Spacer for alignment */}
+              <span className="w-4"></span>
             )}
             <span className="text-blue-500 ml-1">📁</span>
           </span>
@@ -91,7 +91,7 @@ const CategoryTreeItem = ({
 
       {isExpanded && (
         <div>
-          {/* Show notes in this category */}
+          {/* Notes */}
           <div className="ml-6">
             {categoryNotes.map(note => (
               <div
@@ -105,7 +105,7 @@ const CategoryTreeItem = ({
             ))}
           </div>
 
-          {/* Show subcategories */}
+          {/* Subcategories */}
           {category.children && category.children.map(childCategory => (
             <CategoryTreeItem
               key={childCategory.id}
@@ -165,7 +165,7 @@ const CategoryTree = ({ notes, onSelectNote, onCategoryUpdate }) => {
         />
       ))}
       
-      {/* Uncategorized Notes Section */}
+      {/* Uncategorized Section */}
       <div className="mt-4">
         <div className="p-2 text-gray-500 font-medium">
           Uncategorized ({notes.filter(note => !note.category_id).length})
