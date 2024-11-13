@@ -59,7 +59,7 @@ export const categoriesApi = {
   createCategory: async (category) => {
     const response = await api.post('/categories/', category);
     return response.data;
-  }
+  },
 
   deleteCategory: async (id) => {
     await api.delete(`/categories/${id}`);
