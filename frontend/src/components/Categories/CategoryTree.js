@@ -2,12 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { categoriesApi } from '../../services/api';
 
-// Helper function to build tree structure
 const buildCategoryTree = (categories) => {
   const categoryMap = new Map();
   const rootCategories = [];
 
-  // First, create a map of all categories
+  // First, create a map of all categories with empty children arrays
   categories.forEach(category => {
     categoryMap.set(category.id, {
       ...category,
@@ -15,34 +14,50 @@ const buildCategoryTree = (categories) => {
     });
   });
 
-  // Then, build the tree structure
+  // Then, populate children arrays
   categories.forEach(category => {
-    const categoryWithChildren = categoryMap.get(category.id);
     if (category.parent_id) {
       const parent = categoryMap.get(category.parent_id);
       if (parent) {
-        parent.children.push(categoryWithChildren);
+        parent.children.push(categoryMap.get(category.id));
       }
     } else {
-      rootCategories.push(categoryWithChildren);
+      rootCategories.push(categoryMap.get(category.id));
     }
   });
 
   return rootCategories;
 };
 
+const getTotalNotesCount = (category, notes, categories) => {
+  let count = notes.filter(note => note.category_id === category.id).length;
+  const children = categories.filter(cat => cat.parent_id === category.id);
+  children.forEach(child => {
+    count += getTotalNotesCount(child, notes, categories);
+  });
+  return count;
+};
+
 const CategoryTreeItem = ({ 
   category, 
-  notes, 
+  notes,
+  allCategories,
   onSelectNote, 
   onDeleteCategory,
+  onSelectCategory,
+  selectedCategoryId,
   level = 0 
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   
-  // Get notes that belong directly to this category
-  const categoryNotes = notes.filter(note => note.category_id === category.id);
-  
+  const totalNotes = getTotalNotesCount(category, notes, allCategories);
+  const directNotes = notes.filter(note => note.category_id === category.id);
+
+  const handleCategoryClick = (e) => {
+    e.stopPropagation();
+    onSelectCategory(category.id);
+  };
+
   const handleDelete = async (e) => {
     e.stopPropagation();
     if (window.confirm(`Are you sure you want to delete "${category.name}"? All notes will be moved to uncategorized.`)) {
@@ -56,15 +71,23 @@ const CategoryTreeItem = ({
     }
   };
 
+  const isSelected = selectedCategoryId === category.id;
+
   return (
     <div>
       <div 
-        className="group flex items-center gap-2 p-2 hover:bg-gray-100 rounded cursor-pointer"
+        className={`group flex items-center gap-2 p-2 hover:bg-gray-100 rounded cursor-pointer ${
+          isSelected ? 'bg-blue-50' : ''
+        }`}
         style={{ paddingLeft: `${level * 1}rem` }}
+        onClick={handleCategoryClick}
       >
         <div 
           className="flex-1 flex items-center gap-2"
-          onClick={() => setIsExpanded(!isExpanded)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsExpanded(!isExpanded);
+          }}
         >
           <span className="flex items-center">
             {category.children && category.children.length > 0 ? (
@@ -77,7 +100,7 @@ const CategoryTreeItem = ({
             <span className="text-blue-500 ml-1">📁</span>
           </span>
           <span className="truncate">
-            {category.name} ({categoryNotes.length})
+            {category.name} ({totalNotes})
           </span>
         </div>
         
@@ -91,13 +114,15 @@ const CategoryTreeItem = ({
 
       {isExpanded && (
         <div>
-          {/* Notes */}
           <div className="ml-6">
-            {categoryNotes.map(note => (
+            {directNotes.map(note => (
               <div
                 key={note.id}
                 className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded cursor-pointer"
-                onClick={() => onSelectNote(note)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSelectNote(note);
+                }}
               >
                 <span className="text-gray-500">📝</span>
                 <span className="truncate">{note.title}</span>
@@ -105,14 +130,16 @@ const CategoryTreeItem = ({
             ))}
           </div>
 
-          {/* Subcategories */}
           {category.children && category.children.map(childCategory => (
             <CategoryTreeItem
               key={childCategory.id}
               category={childCategory}
               notes={notes}
+              allCategories={allCategories}
               onSelectNote={onSelectNote}
               onDeleteCategory={onDeleteCategory}
+              onSelectCategory={onSelectCategory}
+              selectedCategoryId={selectedCategoryId}
               level={level + 1}
             />
           ))}
@@ -122,15 +149,14 @@ const CategoryTreeItem = ({
   );
 };
 
-const CategoryTree = ({ notes, onSelectNote, onCategoryUpdate }) => {
+const CategoryTree = ({ notes, onSelectNote, onCategoryUpdate, onSelectCategory, selectedCategoryId }) => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const loadCategories = async () => {
     try {
       const data = await categoriesApi.getAllCategories();
-      const treeStructure = buildCategoryTree(data);
-      setCategories(treeStructure);
+      setCategories(data);
     } catch (error) {
       console.error('Error loading categories:', error);
     } finally {
@@ -153,35 +179,45 @@ const CategoryTree = ({ notes, onSelectNote, onCategoryUpdate }) => {
     return <div className="p-4">Loading categories...</div>;
   }
 
+  const rootCategories = buildCategoryTree(categories);
+
   return (
     <div className="space-y-2">
-      {categories.map(category => (
+      {rootCategories.map(category => (
         <CategoryTreeItem
           key={category.id}
           category={category}
           notes={notes}
+          allCategories={categories}
           onSelectNote={onSelectNote}
           onDeleteCategory={handleDeleteCategory}
+          onSelectCategory={onSelectCategory}
+          selectedCategoryId={selectedCategoryId}
         />
       ))}
       
-      {/* Uncategorized Section */}
       <div className="mt-4">
-        <div className="p-2 text-gray-500 font-medium">
+        <div 
+          className={`p-2 text-gray-500 font-medium cursor-pointer hover:bg-gray-100 rounded ${
+            selectedCategoryId === null ? 'bg-blue-50' : ''
+          }`}
+          onClick={() => onSelectCategory(null)}
+        >
           Uncategorized ({notes.filter(note => !note.category_id).length})
         </div>
-        {notes
-          .filter(note => !note.category_id)
-          .map(note => (
-            <div
-              key={note.id}
-              className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded cursor-pointer ml-4"
-              onClick={() => onSelectNote(note)}
-            >
-              <span className="text-gray-500">📝</span>
-              <span className="truncate">{note.title}</span>
-            </div>
-          ))}
+        {(!selectedCategoryId || selectedCategoryId === null) && 
+          notes
+            .filter(note => !note.category_id)
+            .map(note => (
+              <div
+                key={note.id}
+                className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded cursor-pointer ml-4"
+                onClick={() => onSelectNote(note)}
+              >
+                <span className="text-gray-500">📝</span>
+                <span className="truncate">{note.title}</span>
+              </div>
+            ))}
       </div>
     </div>
   );
